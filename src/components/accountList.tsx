@@ -18,7 +18,14 @@ import FormHelperText from '@material-ui/core/FormHelperText';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import InputLabel from '@material-ui/core/InputLabel';
+import Snackbar from '@material-ui/core/Snackbar';
+import MuiAlert, {AlertProps} from '@material-ui/lab/Alert';
 import {AllCategories, Column, Row} from '../modules/manageAccouts'
+import useChangeAccount from '../hooks/useChangeAccount';
+
+function Alert(props: AlertProps){
+    return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
 
 const useStyles = makeStyles((theme:Theme) => 
     createStyles({
@@ -32,7 +39,11 @@ const useStyles = makeStyles((theme:Theme) =>
     })
 );
 
-function spentAmountFormat(amount: number){
+function spentAmountFormat(amount: number | null){
+    if(amount == null){
+        return null;
+    }
+
     let strAmount = amount.toString();
     return `${strAmount.replace(/(\d)(?=(?:\d{3})+(?!\d))/g, '$1,')}`;
 }
@@ -69,28 +80,36 @@ interface TableProps {
 };
 
 function getTotal (items:Row[]) {
-    return items.map(({spentAmount}) => spentAmount).reduce((sum, i) => sum + i, 0);
+    return items.map(({spentAmount}) => spentAmount).reduce((sum, i) => (sum ? sum : 0) + (i ? i : 0), 0);
 }
 
 const AccountTable:React.FC<TableProps> = ({AllCategories, columns, rowDatas}) => {
     const classes = useStyles();
+    const { onAdd, onEdit, onRemove } = useChangeAccount();
     const [isEditOpenDlg, setIsEditOpenDlg] = useState(false);
     const [isDeleteOpenDlg, setIsDeleteOpenDlg] = useState(false);
-    const [changeAccountItem, setChangeAccountItem] = useState({
-        id: 0,
+    const [isAlertOpen, setIsAlertOpen] = useState(false);
+    const [changeAccountItem, setChangeAccountItem] = useState<Row>({
+        accountId: 0,
         category: '',
         spentName: '',
-        spentAmount: 0
+        spentAmount: null
+    });
+    const [inputAccountItem, setInputAccountItem] = useState<Row>({
+        accountId: 0,
+        category: '',
+        spentName: '',
+        spentAmount: null
     });
 
-    const handleSelectChange = (event:React.ChangeEvent<{value: unknown}>) => {
+    const handleEditSelectChange = (event:React.ChangeEvent<{value: unknown}>) => {
         setChangeAccountItem({
             ...changeAccountItem,
             category: event.target.value as string
         });
     };
 
-    const handleTextFieldChange = (event: React.ChangeEvent<HTMLInputElement>, type:string) => {
+    const handleEditTextFieldChange = (event: React.ChangeEvent<HTMLInputElement>, type:string) => {
         switch(type){
             case 'spentName':
                 setChangeAccountItem({
@@ -108,13 +127,54 @@ const AccountTable:React.FC<TableProps> = ({AllCategories, columns, rowDatas}) =
         }
     }
 
+    const handleAddSelectChange = (event:React.ChangeEvent<{value: unknown}>) => {
+        setInputAccountItem({
+            ...inputAccountItem,
+            category: event.target.value as string
+        });
+    };
+
+    const handleAddTextFieldChange = (event: React.ChangeEvent<HTMLInputElement>, type:string) => {
+        switch(type){
+            case 'spentName':
+                setInputAccountItem({
+                    ...inputAccountItem,
+                    spentName: event.target.value
+                });
+                break;
+            case 'spentAmount':
+                const value = Number(event.target.value);
+                setInputAccountItem({
+                    ...inputAccountItem,
+                    spentAmount: value
+                });
+                break;
+        }
+    }
+
+    const handleBlur = () => {
+        console.log('asdf');
+
+        if(inputAccountItem.category !== '' && inputAccountItem.spentName !== '' && inputAccountItem.spentAmount != null) {
+            onAdd(inputAccountItem);
+            setInputAccountItem({
+                accountId: 0,
+                category: '',
+                spentName: '',
+                spentAmount: null
+            });
+        } else{
+            setIsAlertOpen(true);
+        }
+    }
+
     const handleClickOpenDeleteDlg = () => {
         setIsDeleteOpenDlg(true);
     }
 
     const handleClickOpenEditDlg = (item: Row) => {
         setChangeAccountItem({
-            id: item.accountId,
+            accountId: item.accountId,
             category: item.category, 
             spentName: item.spentName,
             spentAmount: item.spentAmount
@@ -126,11 +186,17 @@ const AccountTable:React.FC<TableProps> = ({AllCategories, columns, rowDatas}) =
         switch(type){
             case 'deleteDlg':
                 setIsDeleteOpenDlg(false);
-                //TODO 추후에 hook 설정.
+                onRemove(row.accountId);
                 break;
             case 'editDlg':
                 setIsEditOpenDlg(false);
-                //TODO 추후에 hook 설정.
+                onEdit(row);
+                setChangeAccountItem({
+                    accountId: 0,
+                    category: '',
+                    spentName: '',
+                    spentAmount: null
+                });
                 break;
         }
     }    
@@ -143,11 +209,14 @@ const AccountTable:React.FC<TableProps> = ({AllCategories, columns, rowDatas}) =
             case 'editDlg':
                 setIsEditOpenDlg(false);
                 setChangeAccountItem({
-                    id: 0,
+                    accountId: 0,
                     category: '', 
                     spentName: '',
                     spentAmount: 0
                 });
+                break;
+            case 'alert':
+                setIsAlertOpen(false);
                 break;
         }
     }
@@ -209,7 +278,7 @@ const AccountTable:React.FC<TableProps> = ({AllCategories, columns, rowDatas}) =
                                                 labelId="category-select-label"
                                                 id="category-select-helper"
                                                 value={changeAccountItem.category}
-                                                onChange={handleSelectChange}
+                                                onChange={handleEditSelectChange}
                                             >
                                                 {AllCategories}
                                             </Select>
@@ -221,7 +290,7 @@ const AccountTable:React.FC<TableProps> = ({AllCategories, columns, rowDatas}) =
                                             label="지출명"
                                             type="text"
                                             value={changeAccountItem.spentName}
-                                            onChange={(e:React.ChangeEvent<HTMLInputElement>) => handleTextFieldChange(e, 'spnetName')}
+                                            onChange={(e:React.ChangeEvent<HTMLInputElement>) => handleEditTextFieldChange(e, 'spnetName')}
                                             fullWidth
                                         />
                                         <TextField
@@ -230,7 +299,7 @@ const AccountTable:React.FC<TableProps> = ({AllCategories, columns, rowDatas}) =
                                             label="지출 금액"
                                             type="number"
                                             value={changeAccountItem.spentAmount}
-                                            onChange={(e:React.ChangeEvent<HTMLInputElement>) => handleTextFieldChange(e, 'spentAmount')}
+                                            onChange={(e:React.ChangeEvent<HTMLInputElement>) => handleEditTextFieldChange(e, 'spentAmount')}
                                             fullWidth
                                         />
                                     </DialogContent>
@@ -250,7 +319,54 @@ const AccountTable:React.FC<TableProps> = ({AllCategories, columns, rowDatas}) =
                         </TableRow>
                     ))}
                     <TableRow>
-                        <TableCell colSpan={4}>합계</TableCell>
+                        <TableCell colSpan={2} align="center">
+                            -
+                        </TableCell>
+                        <TableCell>
+                            <FormControl className={classes.formControl}>
+                                <InputLabel id="type-select-label">카테고리</InputLabel>
+                                <Select
+                                    labelId="category-select-label"
+                                    id="category-select-helper"
+                                    value={inputAccountItem.category}
+                                    onChange={handleAddSelectChange}
+                                >
+                                    {AllCategories}
+                                </Select>
+                                <FormHelperText>카테고리를 선택하세요.</FormHelperText>
+                            </FormControl>
+                        </TableCell>
+                        <TableCell>
+                            <TextField
+                                margin="dense"
+                                id="spentName"
+                                label="지출명"
+                                type="text"
+                                value={inputAccountItem.spentName}
+                                onChange={(e:React.ChangeEvent<HTMLInputElement>) => handleAddTextFieldChange(e, 'spnetName')}
+                                fullWidth
+                            />
+                        </TableCell>
+                        <TableCell>
+                            <TextField
+                                margin="dense"
+                                id="categoryName"
+                                label="지출 금액"
+                                type="number"
+                                value={inputAccountItem.spentAmount}
+                                onChange={(e:React.ChangeEvent<HTMLInputElement>) => handleAddTextFieldChange(e, 'spentAmount')}
+                                onBlur={handleBlur}
+                                fullWidth
+                            />
+                            <Snackbar open={isAlertOpen} autoHideDuration={6000} onClose={(e) => handleClose('alert')}>
+                                <Alert onClose={(e) => handleClose('alert')} severity="warning">
+                                    모든 입력란을 입력해야 추가가 가능합니다.
+                                </Alert>
+                            </Snackbar>
+                        </TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell colSpan={4} align="center">합계</TableCell>
                     <TableCell align="center">{getTotal(rowDatas)}</TableCell>
                     </TableRow>
                 </TableBody>

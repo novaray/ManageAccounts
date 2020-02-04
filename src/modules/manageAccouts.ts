@@ -18,25 +18,25 @@ export type Row = {
     accountId: number;
     category: string;
     spentName: string;
-    spentAmount: number;
+    spentAmount: number | null;
 };
 
-export interface EditAccountItemDlgProps {
-    isDeleteDlgOpen: boolean;
-    isEditDlgOpen: boolean;
-    handleTextFieldChange: (event: React.ChangeEvent<HTMLInputElement>, type:string) => void;
-    handleClickOpen: (type: string) => void;
-    handleClose: (type: string) => void;   
-    handleSubmit: (type: string) => void;
-    categorySelectList: string[];
-    handleSelectChange: (event:React.ChangeEvent<{value: unknown}>) => void;
-}
+// export interface EditAccountItemDlgProps {
+//     isDeleteDlgOpen: boolean;
+//     isEditDlgOpen: boolean;
+//     handleTextFieldChange: (event: React.ChangeEvent<HTMLInputElement>, type:string) => void;
+//     handleClickOpen: (type: string) => void;
+//     handleClose: (type: string) => void;   
+//     handleSubmit: (type: string) => void;
+//     categorySelectList: string[];
+//     handleSelectChange: (event:React.ChangeEvent<{value: unknown}>) => void;
+// }
 
-export interface TableProps {
-    columns: Column;
-    rowDatas: Row[];
-    editAccountItemDlgProps: EditAccountItemDlgProps;
-};
+// export interface TableProps {
+//     columns: Column;
+//     rowDatas: Row[];
+//     editAccountItemDlgProps: EditAccountItemDlgProps;
+// };
 
 
 const ADD_CATEGORY = 'category/ADD' as const;
@@ -46,7 +46,6 @@ const REMOVE_ACCOUNT = 'account/REMOVE' as const;
 const EDIT_ACCOUNT = 'account/EDIT' as const;
 const TOGGLE = 'TOGGLE' as const;
 const CHANGE_CATEGORY = 'category/CHANGE' as const;
-const CHANGE_INPUT = 'account/CHANGE_INPUT' as const;
 const CHANGE_DATE = 'date/CHANGE' as const;
 
 export const addCategory = (text:string) => ({
@@ -65,16 +64,40 @@ export const changeDate = (date: Date | null) => ({
 });
 
 export const changeCategory = (text: string) => ({
-    type:CHANGE_CATEGORY,
+    type: CHANGE_CATEGORY,
     payload: text
 });
 
-export const editAccount = (item: Row) => ({
-    type:EDIT_ACCOUNT,
+export const addAccount = (item: Row) => ({
+    type: ADD_ACCOUNT,
     payload: item
 });
 
-export const removeAccount = (item: Row) => ({
-    type:REMOVE_ACCOUNT,
+export const editAccount = (item: Row) => ({
+    type: EDIT_ACCOUNT,
     payload: item
 });
+
+export const removeAccount = (id: number) => ({
+    type: REMOVE_ACCOUNT,
+    payload: id
+});
+
+type AccountAction = 
+    | ReturnType<typeof addCategory>
+    | ReturnType<typeof toggleAllData>
+    | ReturnType<typeof changeDate>
+    | ReturnType<typeof changeCategory>
+    | ReturnType<typeof addAccount>
+    | ReturnType<typeof editAccount>
+    | ReturnType<typeof removeAccount>;
+
+type AccountList = Row[];
+type IsShowAllData = ShowAllData;
+type Categories = AllCategories[];
+
+function accounts(state:AccountList, action:AccountAction): AccountList {
+    switch(action.type){
+        
+    }
+}
