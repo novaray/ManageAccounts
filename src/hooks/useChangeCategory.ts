@@ -1,6 +1,6 @@
 import {useDispatch} from 'react-redux';
 import {useCallback} from 'react';
-import {changeCategory} from '../modules/manageAccouts';
+import {changeCategory} from '../modules/manageCategory';
 
 export default function useChangeCategory() {
     const dispatch = useDispatch();

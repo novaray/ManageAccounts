@@ -19,8 +19,11 @@ import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import InputLabel from '@material-ui/core/InputLabel';
 import Snackbar from '@material-ui/core/Snackbar';
+import MenuItem from '@material-ui/core/MenuItem';
 import MuiAlert, {AlertProps} from '@material-ui/lab/Alert';
-import {AllCategories, Column, Row} from '../modules/manageAccouts'
+import {Column, Row} from '../modules/manageAccouts'
+import {Category} from '../modules/manageCategory';
+
 import useChangeAccount from '../hooks/useChangeAccount';
 
 function Alert(props: AlertProps){
@@ -74,7 +77,7 @@ function spentAmountFormat(amount: number | null){
 // }
 
 interface TableProps {
-    AllCategories: AllCategories;
+    AllCategories: Category[];
     columns: Column;
     rowDatas: Row[];
 };
@@ -101,6 +104,11 @@ const AccountTable:React.FC<TableProps> = ({AllCategories, columns, rowDatas}) =
         spentName: '',
         spentAmount: null
     });
+
+    const categoryList = AllCategories.map(category => 
+        category ? (
+            <MenuItem value={category.categoryName}>{category.categoryName}</MenuItem>
+        ) : null);
 
     const handleEditSelectChange = (event:React.ChangeEvent<{value: unknown}>) => {
         setChangeAccountItem({
@@ -280,7 +288,7 @@ const AccountTable:React.FC<TableProps> = ({AllCategories, columns, rowDatas}) =
                                                 value={changeAccountItem.category}
                                                 onChange={handleEditSelectChange}
                                             >
-                                                {AllCategories}
+                                                {categoryList}
                                             </Select>
                                             <FormHelperText>카테고리를 선택하세요.</FormHelperText>
                                         </FormControl>
@@ -331,7 +339,7 @@ const AccountTable:React.FC<TableProps> = ({AllCategories, columns, rowDatas}) =
                                     value={inputAccountItem.category}
                                     onChange={handleAddSelectChange}
                                 >
-                                    {AllCategories}
+                                    {categoryList}
                                 </Select>
                                 <FormHelperText>카테고리를 선택하세요.</FormHelperText>
                             </FormControl>

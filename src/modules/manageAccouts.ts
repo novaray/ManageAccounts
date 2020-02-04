@@ -1,9 +1,11 @@
+import path from 'path';
+const dbPath = path.join(document.location.hostname, 'db', 'accounts.db');
+const DataStore= require('nedb');
+let db = new DataStore({fileName: dbPath});
+db.loadDatabase();
+
 export type ShowAllData = {
     isShowAllData: boolean
-}
-
-export type AllCategories = {
-    categories: string[]
 }
 
 export type Column = {
@@ -38,20 +40,12 @@ export type Row = {
 //     editAccountItemDlgProps: EditAccountItemDlgProps;
 // };
 
-
-const ADD_CATEGORY = 'category/ADD' as const;
 const REMOVE_CATEGORY = 'category/REMOVE' as const;
 const ADD_ACCOUNT = 'account/ADD' as const;
 const REMOVE_ACCOUNT = 'account/REMOVE' as const;
 const EDIT_ACCOUNT = 'account/EDIT' as const;
 const TOGGLE = 'TOGGLE' as const;
-const CHANGE_CATEGORY = 'category/CHANGE' as const;
 const CHANGE_DATE = 'date/CHANGE' as const;
-
-export const addCategory = (text:string) => ({
-    type: ADD_CATEGORY,
-    payload: text
-});
 
 export const toggleAllData = (isShowAllData: boolean) => ({
     type: TOGGLE,
@@ -61,11 +55,6 @@ export const toggleAllData = (isShowAllData: boolean) => ({
 export const changeDate = (date: Date | null) => ({
     type: CHANGE_DATE,
     payload: date
-});
-
-export const changeCategory = (text: string) => ({
-    type: CHANGE_CATEGORY,
-    payload: text
 });
 
 export const addAccount = (item: Row) => ({
@@ -84,20 +73,49 @@ export const removeAccount = (id: number) => ({
 });
 
 type AccountAction = 
-    | ReturnType<typeof addCategory>
     | ReturnType<typeof toggleAllData>
     | ReturnType<typeof changeDate>
-    | ReturnType<typeof changeCategory>
     | ReturnType<typeof addAccount>
     | ReturnType<typeof editAccount>
     | ReturnType<typeof removeAccount>;
 
 type AccountList = Row[];
 type IsShowAllData = ShowAllData;
-type Categories = AllCategories[];
 
-function accounts(state:AccountList, action:AccountAction): AccountList {
+db.find({}, function (err:any, docs:any) {
+    console.log(docs);
+});
+
+const initialState: AccountList = [
+    { accountId: 1, category: '주유비',spentName: '싸게', spentAmount:3000 },
+    { accountId: 2, category: '주유비',spentName: '가득', spentAmount:50000 },
+    { accountId: 3, category: '주유비',spentName: '중간', spentAmount:25000 }
+  ];
+
+function accounts(state:AccountList= initialState, action:AccountAction): AccountList {
     switch(action.type){
-        
+        case ADD_ACCOUNT:
+            const nextId = Math.max(...state.map(account => account.accountId)) + 1;
+            return [...state, {
+                accountId: nextId,
+                category: action.payload.category,
+                spentName: action.payload.spentName,
+                spentAmount: action.payload.spentAmount
+              }];
+        case EDIT_ACCOUNT:
+            return state.map(account => 
+                    account.accountId === action.payload.accountId ? {
+                        ...account,
+                        category: action.payload.category,
+                        spentName: action.payload.spentName,
+                        spentAmount: action.payload.spentAmount
+                    } : account
+                );
+        case REMOVE_ACCOUNT:
+            return state.filter(account => account.accountId !== action.payload);
+        default:
+            return state;
     }
 }
+
+export default accounts;
