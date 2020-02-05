@@ -21,9 +21,9 @@ import InputLabel from '@material-ui/core/InputLabel';
 import Snackbar from '@material-ui/core/Snackbar';
 import MenuItem from '@material-ui/core/MenuItem';
 import MuiAlert, {AlertProps} from '@material-ui/lab/Alert';
-import {Column, Row} from '../modules/manageAccouts'
-import {Category} from '../modules/manageCategory';
-
+import {Row} from '../modules/manageAccouts'
+import useAccounts from '../hooks/useAccounts';
+import useCaregories from '../hooks/useCategories';
 import useChangeAccount from '../hooks/useChangeAccount';
 
 function Alert(props: AlertProps){
@@ -42,7 +42,7 @@ const useStyles = makeStyles((theme:Theme) =>
     })
 );
 
-function spentAmountFormat(amount: number | null){
+function spentAmountFormat(amount: number | null) {
     if(amount == null){
         return null;
     }
@@ -51,43 +51,14 @@ function spentAmountFormat(amount: number | null){
     return `${strAmount.replace(/(\d)(?=(?:\d{3})+(?!\d))/g, '$1,')}`;
 }
 
-// interface Column {
-//     editButtonText: string;
-//     deleteButtonText: string;
-//     categoryTitle: string;
-//     spentNameTitle: string;
-//     spentAmountTitle: string;
-// };
-
-// interface Row {
-//     category: string;
-//     spentName: string;
-//     spentAmount: number;
-// };
-
-// interface EditAccountItemDlgProps {
-//     isDeleteDlgOpen: boolean;
-//     isEditDlgOpen: boolean;
-//     handleTextFieldChange: (event: React.ChangeEvent<HTMLInputElement>, type:string) => void;
-//     handleClickOpen: (type: string) => void;
-//     handleClose: (type: string) => void;   
-//     handleSubmit: (type: string) => void;
-//     categorySelectList: string[];
-//     handleSelectChange: (event:React.ChangeEvent<{value: unknown}>) => void;
-// }
-
-interface TableProps {
-    AllCategories: Category[];
-    columns: Column;
-    rowDatas: Row[];
-};
-
 function getTotal (items:Row[]) {
     return items.map(({spentAmount}) => spentAmount).reduce((sum, i) => (sum ? sum : 0) + (i ? i : 0), 0);
 }
 
-const AccountTable:React.FC<TableProps> = ({AllCategories, columns, rowDatas}) => {
-    const classes = useStyles();
+const AccountTable = () => {
+    const classes = useStyles();    
+    const rows = useAccounts();
+    const AllCategories = useCaregories();
     const { onAdd, onEdit, onRemove } = useChangeAccount();
     const [isEditOpenDlg, setIsEditOpenDlg] = useState(false);
     const [isDeleteOpenDlg, setIsDeleteOpenDlg] = useState(false);
@@ -96,13 +67,15 @@ const AccountTable:React.FC<TableProps> = ({AllCategories, columns, rowDatas}) =
         accountId: 0,
         category: '',
         spentName: '',
-        spentAmount: null
+        spentAmount: null,
+        date: null
     });
     const [inputAccountItem, setInputAccountItem] = useState<Row>({
         accountId: 0,
         category: '',
         spentName: '',
-        spentAmount: null
+        spentAmount: null,
+        date: null
     });
 
     const categoryList = AllCategories.map(category => 
@@ -164,12 +137,17 @@ const AccountTable:React.FC<TableProps> = ({AllCategories, columns, rowDatas}) =
         console.log('asdf');
 
         if(inputAccountItem.category !== '' && inputAccountItem.spentName !== '' && inputAccountItem.spentAmount != null) {
+            setInputAccountItem({
+                ...changeAccountItem,
+                date: new Date()
+            });
             onAdd(inputAccountItem);
             setInputAccountItem({
                 accountId: 0,
                 category: '',
                 spentName: '',
-                spentAmount: null
+                spentAmount: null,
+                date: null
             });
         } else{
             setIsAlertOpen(true);
@@ -185,7 +163,8 @@ const AccountTable:React.FC<TableProps> = ({AllCategories, columns, rowDatas}) =
             accountId: item.accountId,
             category: item.category, 
             spentName: item.spentName,
-            spentAmount: item.spentAmount
+            spentAmount: item.spentAmount,
+            date: item.date
         });
         setIsEditOpenDlg(true);
     }
@@ -198,12 +177,17 @@ const AccountTable:React.FC<TableProps> = ({AllCategories, columns, rowDatas}) =
                 break;
             case 'editDlg':
                 setIsEditOpenDlg(false);
+                setChangeAccountItem({
+                    ...changeAccountItem,
+                    date: new Date()
+                });
                 onEdit(row);
                 setChangeAccountItem({
                     accountId: 0,
                     category: '',
                     spentName: '',
-                    spentAmount: null
+                    spentAmount: null,
+                    date: null
                 });
                 break;
         }
@@ -220,7 +204,8 @@ const AccountTable:React.FC<TableProps> = ({AllCategories, columns, rowDatas}) =
                     accountId: 0,
                     category: '', 
                     spentName: '',
-                    spentAmount: 0
+                    spentAmount: null,
+                    date: null
                 });
                 break;
             case 'alert':
@@ -234,15 +219,15 @@ const AccountTable:React.FC<TableProps> = ({AllCategories, columns, rowDatas}) =
             <Table className={classes.table} aria-label="spanning table">
                 <TableHead>
                     <TableRow>
-                        <TableCell align="center">{columns.deleteButtonText}</TableCell>
-                        <TableCell align="center">{columns.editButtonText}</TableCell>
-                        <TableCell align="center">{columns.categoryTitle}</TableCell>
-                        <TableCell align="center">{columns.spentNameTitle}</TableCell>
-                        <TableCell align="center">{columns.spentAmountTitle}</TableCell>
+                        <TableCell align="center">삭제</TableCell>
+                        <TableCell align="center">수정</TableCell>
+                        <TableCell align="center">카테고리</TableCell>
+                        <TableCell align="center">지출명</TableCell>
+                        <TableCell align="center">지출 금액</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {rowDatas.map(row => (
+                    {rows.map(row => (
                         <TableRow key={row.spentName}>
                             <TableCell align="center">
                                <Button variant="outlined" color="primary" onClick={handleClickOpenDeleteDlg}>
@@ -375,7 +360,7 @@ const AccountTable:React.FC<TableProps> = ({AllCategories, columns, rowDatas}) =
                     </TableRow>
                     <TableRow>
                         <TableCell colSpan={4} align="center">합계</TableCell>
-                    <TableCell align="center">{getTotal(rowDatas)}</TableCell>
+                    <TableCell align="center">{getTotal(rows)}</TableCell>
                     </TableRow>
                 </TableBody>
             </Table>

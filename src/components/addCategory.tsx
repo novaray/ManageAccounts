@@ -8,15 +8,6 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import useAddCategory from '../hooks/useAddCategory';
 
-// interface Props {
-//     isOpen: boolean;
-//     category: string;
-//     handleTextFieldChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-//     handleClickOpen: () => void;
-//     handleClose: () => void;   
-//     handleSubmit: () => void;
-// };
-
 const AddCategoryDialog:React.FC = () => {
     const [category, setCateogry] = useState('');
     const [open, setOpen] = useState(false);

@@ -1,26 +1,16 @@
 import React, { useState } from 'react';
 import Switch from '@material-ui/core/Switch';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
-import {ShowAllData} from '../modules/manageAccouts';
 import useShowAllData from '../hooks/useShowAllData';
 
-// interface Props {
-//     isAllDataOfMonth: boolean;
-//     handleSwitchChange(): void;
-// };
-
-export interface Props {
-    prop: ShowAllData
-};
-
-const AllDataSwitch:React.FC<Props> = ({prop}) => {
+const AllDataSwitch:React.FC = () => {
     const [isAllDataOfMonth, setIsAllDataOfMonth] = useState(false);
     const showAllData = useShowAllData();
 
     const handleSwitchChange = () => {
         setIsAllDataOfMonth(!isAllDataOfMonth);
         showAllData(isAllDataOfMonth);
-    }
+    };
 
     return (
         <FormControlLabel

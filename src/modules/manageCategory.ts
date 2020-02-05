@@ -43,5 +43,9 @@ function categories(state:CategoryList = initialState, action: CategoryAction): 
                     categoryName: action.payload.categoryName
                 } : category
             );
+        default:
+            return state;
     }
 }
+
+export default categories;

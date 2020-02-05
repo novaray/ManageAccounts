@@ -6,6 +6,7 @@ import FormHelperText from '@material-ui/core/FormHelperText';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import useChangeCategory from '../hooks/useChangeCategory';
+import useCategories from '../hooks/useCategories';
 import {Category} from '../modules/manageCategory';
 
 const useStyles = makeStyles((theme:Theme) => 
@@ -16,16 +17,12 @@ const useStyles = makeStyles((theme:Theme) =>
         }  
     })
 );
-
-interface Props {
-    prop: Category[];
-};
-
-const SelectCategory:React.FC<Props> = ({prop}) => {
+const SelectCategory = () => {
     const classes = useStyles();
+    const categories = useCategories();
     const changeCategory = useChangeCategory();
     const [selectedCategory, setSelectedCategory] = useState('');
-    const categoryList = prop.map(category => 
+    const categoryList = categories.map(category => 
         category ? (
             <MenuItem value={category.categoryName}>{category.categoryName}</MenuItem>
         ) : null);

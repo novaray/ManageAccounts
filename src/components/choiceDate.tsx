@@ -1,22 +1,13 @@
 import React, { useState } from 'react';
 import DateFnsUtils from '@date-io/date-fns';
 import { MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers';
-import {ShowAllData} from '../modules/manageAccouts';
 import useChangeDate from '../hooks/useChangeDate';
+import useToggle from '../hooks/useToggle';
 
-// interface Props {
-//     date: Date | null;
-//     handleDateChange: (date : Date | null) => void;
-//     isAllDataOfMonth: boolean
-// };
-
-export interface Props {
-    prop: ShowAllData
-};
-
-const DatePicker:React.FC<Props> = ({prop}) => {
+const DatePicker = () => {
     const [date, setDate] = useState<Date | null>(new Date());
     const changeDate = useChangeDate();
+    const isShowAllData = useToggle().isShowAllData;
     
     const handleDateChange = (date: Date | null) => {
         setDate(date);
@@ -37,7 +28,7 @@ const DatePicker:React.FC<Props> = ({prop}) => {
                 KeyboardButtonProps={{
                     'aria-label': 'change date'
                 }}
-                disabled={prop.isShowAllData}
+                disabled={isShowAllData}
             />
         </MuiPickersUtilsProvider>
     );
