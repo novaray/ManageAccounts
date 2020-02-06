@@ -24,7 +24,7 @@ const SelectCategory = () => {
     const [selectedCategory, setSelectedCategory] = useState('');
     const categoryList = categories.map(category => 
         category ? (
-            <MenuItem value={category.categoryName}>{category.categoryName}</MenuItem>
+            <MenuItem value={category.categoryName} key={category.categoryId}>{category.categoryName}</MenuItem>
         ) : null);
     
     const handleSelectChange = (event:React.ChangeEvent<{value: unknown}>) => {

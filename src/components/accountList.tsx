@@ -74,13 +74,13 @@ const AccountTable = () => {
         accountId: 0,
         category: '',
         spentName: '',
-        spentAmount: null,
+        spentAmount: 0,
         date: null
     });
 
     const categoryList = AllCategories.map(category => 
         category ? (
-            <MenuItem value={category.categoryName}>{category.categoryName}</MenuItem>
+            <MenuItem value={category.categoryName} key={category.categoryId}>{category.categoryName}</MenuItem>
         ) : null);
 
     const handleEditSelectChange = (event:React.ChangeEvent<{value: unknown}>) => {

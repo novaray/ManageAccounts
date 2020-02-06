@@ -10,11 +10,11 @@ function App() {
         <>
             <AllDataSwitch />
             <DatePicker />
-            {/* <div style={{display:'flex'}}>
+            <div style={{display:'flex'}}>
                 <SelectCategory />
                 <AddCategoryDialog />
             </div>
-            <AccountTable /> */}
+            <AccountTable />
         </>
     )
 }
