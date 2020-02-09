@@ -2,8 +2,10 @@ import path from 'path';
 import { arrayIncludes } from '@material-ui/pickers/_helpers/utils';
 const dbPath = path.join(document.location.hostname, 'db', 'accounts.db');
 const DataStore= require('nedb');
-let db = new DataStore({fileName: dbPath});
-db.loadDatabase();
+const moment = require('moment');
+// let db = new DataStore({fileName: dbPath});
+// db.loadDatabase();
+// moment.locale('ko');
 
 export type Row = {
     accountId: number;
@@ -40,14 +42,14 @@ type AccountAction =
 
 type AccountList = Row[];
 
-db.find({}, function (err:any, docs:any) {
-    console.log(docs);
-});
+// db.find({}, function (err:any, docs:any) {
+//     console.log(docs);
+// });
 
 const initialState: AccountList = [
-    { accountId: 1, category: '주유비',spentName: '싸게', spentAmount:3000, date: new Date() },
-    { accountId: 2, category: '주유비',spentName: '가득', spentAmount:50000, date: new Date() },
-    { accountId: 3, category: '주유비',spentName: '중간', spentAmount:25000, date: new Date() }
+    { accountId: 1, category: '주유비',spentName: '싸게', spentAmount:3000, date: moment().format() },
+    { accountId: 2, category: '주유비',spentName: '가득', spentAmount:50000, date: moment().format() },
+    { accountId: 3, category: '주유비',spentName: '중간', spentAmount:25000, date: moment().format() }
   ];
 
 function accounts(state:AccountList= initialState, action:AccountAction): AccountList {
@@ -59,7 +61,7 @@ function accounts(state:AccountList= initialState, action:AccountAction): Accoun
                 category: action.payload.category,
                 spentName: action.payload.spentName,
                 spentAmount: action.payload.spentAmount,
-                date: new Date()
+                date: moment().format()
               }];
         case EDIT_ACCOUNT:
             return state.map(account => 

@@ -20,7 +20,7 @@ function toggle(state: toggle = initialState, action: ToggleAction): toggle {
     switch(action.type){
         case TOGGLE:
             state.isShowAllData = action.payload;
-            return state;
+            return Object.assign({}, state, {isShowAllData: action.payload});
         default:
             return state;
     }

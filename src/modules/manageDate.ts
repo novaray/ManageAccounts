@@ -20,7 +20,7 @@ function selectDate(state:SelectedDate = initialState, action: DateAction): Sele
     switch(action.type) {
         case CHANGE_DATE:
             state.date = action.payload;
-            return state;
+            return Object.assign({}, state, action.payload);
         default:
             return state;
     }

@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
+import koLocale from 'date-fns/locale/ko';
 import DateFnsUtils from '@date-io/date-fns';
 import { MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers';
 import useChangeDate from '../hooks/useChangeDate';
 import useToggle from '../hooks/useToggle';
+const moment = require('moment');
+moment.locale('kr');
 
 function DatePicker() {
-    const [date, setDate] = useState<Date | null>(new Date('2020-02-05T21:11:54'));
+    const [date, setDate] = useState<Date | null>(moment().format());
     const changeDate = useChangeDate();
     const isShowAllData = useToggle().isShowAllData;
     
@@ -15,7 +18,7 @@ function DatePicker() {
     }
 
     return (    
-        <MuiPickersUtilsProvider utils={DateFnsUtils}>
+        <MuiPickersUtilsProvider utils={DateFnsUtils} locale={koLocale}>
             <KeyboardDatePicker
                 disableToolbar
                 variant="inline"

@@ -4,5 +4,5 @@ import {changeCategory} from '../modules/manageCategory';
 
 export default function useChangeCategory() {
     const dispatch = useDispatch();
-    return useCallback(text => dispatch(changeCategory(text)), [dispatch]);
+    return useCallback((item:string) => dispatch(changeCategory(item)), [dispatch]);
 }

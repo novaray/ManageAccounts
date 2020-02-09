@@ -8,12 +8,13 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import useAddCategory from '../hooks/useAddCategory';
 
-const AddCategoryDialog:React.FC = () => {
+function AddCategoryDialog () {
     const [category, setCateogry] = useState('');
     const [open, setOpen] = useState(false);
     const addCategory = useAddCategory();
 
     const handleTextFiledChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        console.log(event.target.value);
         setCateogry(event.target.value);
     }
 
@@ -23,10 +24,25 @@ const AddCategoryDialog:React.FC = () => {
 
     const handleClose = () => {
         setOpen(false);
+        setCateogry('');
     }
 
     const handleSubmit = () => {
+        submitCategory();
+    }
+    
+    const handleKeyUp = (event: React.KeyboardEvent<HTMLDivElement>) => {
+        if(event.key === 'Enter'){
+            if(category === ''){
+                return;
+            }
+            submitCategory();
+        }
+    }
+
+    const submitCategory = () => {
         addCategory(category);
+        setOpen(false);
         setCateogry('');
     }
 
@@ -48,7 +64,10 @@ const AddCategoryDialog:React.FC = () => {
                     label="카테고리 이름"
                     type="text"
                     value={category}
+                    error={category === '' ? true : false}
+                    variant="outlined"
                     onChange={handleTextFiledChange}
+                    onKeyUp={handleKeyUp}
                     fullWidth
                 />
             </DialogContent>

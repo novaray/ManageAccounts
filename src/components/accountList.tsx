@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -23,8 +23,14 @@ import MenuItem from '@material-ui/core/MenuItem';
 import MuiAlert, {AlertProps} from '@material-ui/lab/Alert';
 import {Row} from '../modules/manageAccouts'
 import useAccounts from '../hooks/useAccounts';
+import useDate from '../hooks/useDate';
+import useToggle from '../hooks/useToggle';
 import useCaregories from '../hooks/useCategories';
 import useChangeAccount from '../hooks/useChangeAccount';
+import useCategoryName from '../hooks/useCategoryName';
+import EditAccountDlg from './Dialogs/editAccountDlg';
+const moment = require('moment');
+moment.locale('kr');
 
 function Alert(props: AlertProps){
     return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -55,10 +61,14 @@ function getTotal (items:Row[]) {
     return items.map(({spentAmount}) => spentAmount).reduce((sum, i) => (sum ? sum : 0) + (i ? i : 0), 0);
 }
 
-const AccountTable = () => {
-    const classes = useStyles();    
+function AccountTable () {
+    console.log('다시그리는중')
+    const classes = useStyles();
     const rows = useAccounts();
     const AllCategories = useCaregories();
+    const isShowAllData = useToggle().isShowAllData;
+    const selectedCategory = useCategoryName();
+    const selectedDate = useDate().date;
     const { onAdd, onEdit, onRemove } = useChangeAccount();
     const [isEditOpenDlg, setIsEditOpenDlg] = useState(false);
     const [isDeleteOpenDlg, setIsDeleteOpenDlg] = useState(false);
@@ -78,10 +88,30 @@ const AccountTable = () => {
         date: null
     });
 
+    const getFilteredRows = () => {
+        if(isShowAllData === true){
+            return rows.filter(row => {
+                return selectedCategory === '전체' ? true : row.category === selectedCategory
+            });
+        } else {
+            return rows.filter(row => {
+                return moment(moment(row.date).format('YYYYMMDD')).isSame(moment(selectedDate).format('YYYYMMDD')) 
+                && selectedCategory === '전체' ? true : row.category === selectedCategory
+            });
+        }
+    };
+
     const categoryList = AllCategories.map(category => 
         category ? (
             <MenuItem value={category.categoryName} key={category.categoryId}>{category.categoryName}</MenuItem>
         ) : null);
+
+    const handleAddSelectChange = (event:React.ChangeEvent<{value: unknown}>) => {
+        setInputAccountItem({
+            ...inputAccountItem,
+            category: event.target.value as string
+        });
+    };
 
     const handleEditSelectChange = (event:React.ChangeEvent<{value: unknown}>) => {
         setChangeAccountItem({
@@ -97,6 +127,7 @@ const AccountTable = () => {
                     ...changeAccountItem,
                     spentName: event.target.value
                 });
+                console.log(changeAccountItem);
                 break;
             case 'spentAmount':
                 const value = Number(event.target.value);
@@ -107,13 +138,6 @@ const AccountTable = () => {
                 break;
         }
     }
-
-    const handleAddSelectChange = (event:React.ChangeEvent<{value: unknown}>) => {
-        setInputAccountItem({
-            ...inputAccountItem,
-            category: event.target.value as string
-        });
-    };
 
     const handleAddTextFieldChange = (event: React.ChangeEvent<HTMLInputElement>, type:string) => {
         switch(type){
@@ -134,19 +158,13 @@ const AccountTable = () => {
     }
 
     const handleBlur = () => {
-        console.log('asdf');
-
         if(inputAccountItem.category !== '' && inputAccountItem.spentName !== '' && inputAccountItem.spentAmount != null) {
-            setInputAccountItem({
-                ...changeAccountItem,
-                date: new Date()
-            });
             onAdd(inputAccountItem);
             setInputAccountItem({
                 accountId: 0,
                 category: '',
                 spentName: '',
-                spentAmount: null,
+                spentAmount: 0,
                 date: null
             });
         } else{
@@ -159,13 +177,7 @@ const AccountTable = () => {
     }
 
     const handleClickOpenEditDlg = (item: Row) => {
-        setChangeAccountItem({
-            accountId: item.accountId,
-            category: item.category, 
-            spentName: item.spentName,
-            spentAmount: item.spentAmount,
-            date: item.date
-        });
+        setChangeAccountItem(item);
         setIsEditOpenDlg(true);
     }
 
@@ -177,18 +189,7 @@ const AccountTable = () => {
                 break;
             case 'editDlg':
                 setIsEditOpenDlg(false);
-                setChangeAccountItem({
-                    ...changeAccountItem,
-                    date: new Date()
-                });
                 onEdit(row);
-                setChangeAccountItem({
-                    accountId: 0,
-                    category: '',
-                    spentName: '',
-                    spentAmount: null,
-                    date: null
-                });
                 break;
         }
     }    
@@ -200,13 +201,13 @@ const AccountTable = () => {
                 break;
             case 'editDlg':
                 setIsEditOpenDlg(false);
-                setChangeAccountItem({
-                    accountId: 0,
-                    category: '', 
-                    spentName: '',
-                    spentAmount: null,
-                    date: null
-                });
+                // setChangeAccountItem({
+                //     accountId: 0,
+                //     category: '', 
+                //     spentName: '',
+                //     spentAmount: 0,
+                //     date: null
+                // });
                 break;
             case 'alert':
                 setIsAlertOpen(false);
@@ -215,7 +216,8 @@ const AccountTable = () => {
     }
 
     return (
-        <TableContainer component={Paper}>
+        <div>
+            <TableContainer component={Paper}>
             <Table className={classes.table} aria-label="spanning table">
                 <TableHead>
                     <TableRow>
@@ -227,7 +229,7 @@ const AccountTable = () => {
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {rows.map(row => (
+                    {getFilteredRows().map(row => (
                         <TableRow key={row.spentName}>
                             <TableCell align="center">
                                <Button variant="outlined" color="primary" onClick={handleClickOpenDeleteDlg}>
@@ -256,55 +258,9 @@ const AccountTable = () => {
                                 </Dialog>
                             </TableCell>
                             <TableCell align="center">
-                                <Button variant="outlined" color="primary" onClick={(e) => handleClickOpenEditDlg(row)}>
+                                <Button variant="outlined" color="primary" onClick={() => handleClickOpenEditDlg(row)}>
                                     수정
                                 </Button>
-                                <Dialog open={isEditOpenDlg} onClose={(e) => handleClose('editDlg')} aria-labelledby="edit-account-dialog">
-                                    <DialogTitle id="dlg-title">지출 항목 수정</DialogTitle>
-                                    <DialogContent>
-                                        <DialogContentText>
-                                            지출 항목을 수정하세요.
-                                        </DialogContentText>
-                                        <FormControl className={classes.formControl}>
-                                            <InputLabel id="type-select-label">카테고리</InputLabel>
-                                            <Select
-                                                labelId="category-select-label"
-                                                id="category-select-helper"
-                                                value={changeAccountItem.category}
-                                                onChange={handleEditSelectChange}
-                                            >
-                                                {categoryList}
-                                            </Select>
-                                            <FormHelperText>카테고리를 선택하세요.</FormHelperText>
-                                        </FormControl>
-                                        <TextField
-                                            margin="dense"
-                                            id="spentName"
-                                            label="지출명"
-                                            type="text"
-                                            value={changeAccountItem.spentName}
-                                            onChange={(e:React.ChangeEvent<HTMLInputElement>) => handleEditTextFieldChange(e, 'spnetName')}
-                                            fullWidth
-                                        />
-                                        <TextField
-                                            margin="dense"
-                                            id="categoryName"
-                                            label="지출 금액"
-                                            type="number"
-                                            value={changeAccountItem.spentAmount}
-                                            onChange={(e:React.ChangeEvent<HTMLInputElement>) => handleEditTextFieldChange(e, 'spentAmount')}
-                                            fullWidth
-                                        />
-                                    </DialogContent>
-                                    <DialogActions>
-                                        <Button onClick={(e) => handleClose('editDlg')} color="primary">
-                                            취소
-                                        </Button>
-                                        <Button onClick={(e) => handleSubmit('editDlg', row)} color="primary">
-                                            등록
-                                        </Button>
-                                    </DialogActions>
-                                </Dialog>
                             </TableCell>
                             <TableCell align="center">{row.category}</TableCell>
                             <TableCell align="center">{row.spentName}</TableCell>
@@ -317,10 +273,10 @@ const AccountTable = () => {
                         </TableCell>
                         <TableCell>
                             <FormControl className={classes.formControl}>
-                                <InputLabel id="type-select-label">카테고리</InputLabel>
+                                <InputLabel id="type-add-select-label">카테고리</InputLabel>
                                 <Select
-                                    labelId="category-select-label"
-                                    id="category-select-helper"
+                                    labelId="category-add-select-label"
+                                    id="category-add-select-helper"
                                     value={inputAccountItem.category}
                                     onChange={handleAddSelectChange}
                                 >
@@ -332,18 +288,18 @@ const AccountTable = () => {
                         <TableCell>
                             <TextField
                                 margin="dense"
-                                id="spentName"
+                                id="addSpentName"
                                 label="지출명"
                                 type="text"
                                 value={inputAccountItem.spentName}
-                                onChange={(e:React.ChangeEvent<HTMLInputElement>) => handleAddTextFieldChange(e, 'spnetName')}
+                                onChange={(e:React.ChangeEvent<HTMLInputElement>) => handleAddTextFieldChange(e, 'spentName')}
                                 fullWidth
                             />
                         </TableCell>
                         <TableCell>
                             <TextField
                                 margin="dense"
-                                id="categoryName"
+                                id="addCategoryName"
                                 label="지출 금액"
                                 type="number"
                                 value={inputAccountItem.spentAmount}
@@ -364,7 +320,17 @@ const AccountTable = () => {
                     </TableRow>
                 </TableBody>
             </Table>
-        </TableContainer>
+            </TableContainer>
+            <EditAccountDlg 
+                open={isEditOpenDlg} 
+                row={changeAccountItem}
+                categories={AllCategories}
+                handleClose={handleClose}
+                handleSubmit={handleSubmit}
+                handleEditSelectChange={handleEditSelectChange}
+                handleEditTextFieldChange={handleEditTextFieldChange}
+            />
+        </div>
     );
 }
 

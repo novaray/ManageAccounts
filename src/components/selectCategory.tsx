@@ -7,7 +7,6 @@ import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import useChangeCategory from '../hooks/useChangeCategory';
 import useCategories from '../hooks/useCategories';
-import {Category} from '../modules/manageCategory';
 
 const useStyles = makeStyles((theme:Theme) => 
     createStyles({
@@ -17,11 +16,13 @@ const useStyles = makeStyles((theme:Theme) =>
         }  
     })
 );
-const SelectCategory = () => {
+
+function SelectCategory () {
     const classes = useStyles();
-    const categories = useCategories();
+    let categories = useCategories();
+    categories = [{categoryId:-1, categoryName:'전체'}, ...categories];
     const changeCategory = useChangeCategory();
-    const [selectedCategory, setSelectedCategory] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('전체');
     const categoryList = categories.map(category => 
         category ? (
             <MenuItem value={category.categoryName} key={category.categoryId}>{category.categoryName}</MenuItem>
@@ -29,7 +30,7 @@ const SelectCategory = () => {
     
     const handleSelectChange = (event:React.ChangeEvent<{value: unknown}>) => {
         setSelectedCategory(event.target.value as string);
-        changeCategory(selectedCategory);
+        changeCategory(event.target.value as string);
     };
 
     return (

@@ -3,13 +3,13 @@ import Switch from '@material-ui/core/Switch';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import useShowAllData from '../hooks/useShowAllData';
 
-const AllDataSwitch:React.FC = () => {
+function AllDataSwitch () {
     const [isAllDataOfMonth, setIsAllDataOfMonth] = useState(false);
     const showAllData = useShowAllData();
 
     const handleSwitchChange = () => {
         setIsAllDataOfMonth(!isAllDataOfMonth);
-        showAllData(isAllDataOfMonth);
+        showAllData(!isAllDataOfMonth);
     };
 
     return (
