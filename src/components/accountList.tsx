@@ -307,11 +307,6 @@ function AccountTable () {
                                 onBlur={handleBlur}
                                 fullWidth
                             />
-                            <Snackbar open={isAlertOpen} autoHideDuration={6000} onClose={(e) => handleClose('alert')}>
-                                <Alert onClose={(e) => handleClose('alert')} severity="warning">
-                                    모든 입력란을 입력해야 추가가 가능합니다.
-                                </Alert>
-                            </Snackbar>
                         </TableCell>
                     </TableRow>
                     <TableRow>
@@ -321,6 +316,11 @@ function AccountTable () {
                 </TableBody>
             </Table>
             </TableContainer>
+            <Snackbar open={isAlertOpen} autoHideDuration={6000} onClose={(e) => handleClose('alert')}>
+                                <Alert onClose={(e) => handleClose('alert')} severity="warning">
+                                    모든 입력란을 입력해야 추가가 가능합니다.
+                                </Alert>
+                            </Snackbar>
             <EditAccountDlg 
                 open={isEditOpenDlg} 
                 row={changeAccountItem}
